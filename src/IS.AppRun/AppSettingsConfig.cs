@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System.Text;
+using Microsoft.AspNetCore.Builder;
 
 
 namespace SlugEnt.IS.AppRun;
 
 /// <summary>
-/// Builds the Appsettings Configuration for a Sheakley App.  Provides for our standardized way of looking for and loading from Various AppSettings files.
+/// Builds the Appsettings Configuration for a SlugEnt App.  Provides for our standardized way of looking for and loading from Various AppSettings files.
 /// It also allows for the addition of other Appsettings files as well into the process.
 /// Standard order is:
 /// <para>  - Environment Variables which can be loaded by the calling application</para>
@@ -143,19 +144,22 @@ public class AppSettingsConfig
     /// <param name="requiredToExist">If true, the app will abort if the file does not exist.</param>
     /// <exception cref="Exception"></exception>
     public void AddSettingFile(string fullPathandName,
+                               List<string> settingList,
                                bool requiredToExist = false)
     {
+        bool fileExists = System.IO.File.Exists(fullPathandName);
         if (requiredToExist)
-            if (!System.IO.File.Exists(fullPathandName))
+            if (!fileExists)
                 throw new Exception($"The AppSetting file {fullPathandName} does not exist and is required.");
 
-        CustomFiles.Add(fullPathandName);
+        if (fileExists)
+            settingList.Add(fullPathandName);
     }
 
 
 
     /// <summary>
-    /// Builds the Actual Application Configuration based upoon the current environment.
+    /// Builds the Actual Application Configuration based upon the current environment.
     /// </summary>
     /// <returns></returns>
     public void Build()
@@ -175,7 +179,7 @@ public class AppSettingsConfig
 
         // This file is always last added.
         if (UseSensitiveAppSettings)
-            AddSettingFile(SensitiveName, true);
+            AddSettingFile(SensitiveName, CustomFiles, true);
 
 
         //************************************************************************************
@@ -190,6 +194,21 @@ public class AppSettingsConfig
             AddJsonRecord(_configurationBuilder, customFile);
     }
 
+
+    /// <summary>
+    /// Adds the Configuration Settings to the Configuration Manager.  This is required for anything that uses the newew WebApplicationBuilders...
+    /// </summary>
+    /// <param name="configurationManager"></param>
+    public void WebApplicationBuilderConfig(ConfigurationManager configurationManager)
+    {
+        foreach (string file in ConfigFiles)
+            configurationManager.AddJsonFile(file, true);
+
+
+        // Add Custom Files
+        foreach (string customFile in CustomFiles)
+            configurationManager.AddJsonFile(customFile, true);
+    }
 
 
     /// <summary>
@@ -225,16 +244,7 @@ public class AppSettingsConfig
         if (!string.IsNullOrWhiteSpace(EnvironmentName))
             file = Path.Join(path, $"appsettings." + EnvironmentName + ".json");
 
-        if (isRequired)
-        {
-            if (!System.IO.File.Exists(file))
-            {
-                Console.WriteLine("The AppSetting file {file} does not exist and is required.", file);
-                throw new ApplicationException("The Appsetting file [ " + file + " ] does not exist!  It is required.");
-            }
-        }
-
-        ConfigFiles.Add(file);
+        AddSettingFile(file, ConfigFiles, isRequired);
     }
 
 
@@ -249,15 +259,6 @@ public class AppSettingsConfig
         String file = "";
         file = Path.Join(path, $"appsettings.json");
 
-        if (isRequired)
-        {
-            if (!System.IO.File.Exists(file))
-            {
-                Console.WriteLine("The AppSetting file {file} does not exist and is required.", file);
-                throw new ApplicationException("The Appsetting file [ " + file + " ] does not exist!  It is required.");
-            }
-        }
-
-        ConfigFiles.Add(file);
+        AddSettingFile(file, ConfigFiles, isRequired);
     }
 }

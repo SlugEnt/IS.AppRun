@@ -55,10 +55,10 @@ public class AppRuntime
 
 
     /// <summary>
-    /// Initializes the Vault and Logging for the application.  
+    /// Completes all configuration of the App object.
     /// </summary>
     /// <returns></returns>
-    public bool SetupLogging()
+    public bool Build(ConfigurationManager? configurationManager = null)
     {
         // B.  AppSettings Logic
         AppSettings.Build();
@@ -75,6 +75,12 @@ public class AppRuntime
         Serilog.Core.Logger logger = logconfig.CreateLogger();
         Logger = logger.ForContext("SourceContext", AppFullName);
         Log.Information($"Starting {Assembly.GetEntryAssembly().FullName}");
+
+        if (configurationManager != null)
+        {
+            AppSettings.WebApplicationBuilderConfig(configurationManager);
+        }
+
         return false;
     }
 }
