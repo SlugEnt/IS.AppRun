@@ -24,7 +24,7 @@
     <Title>Modern Program.cs startup assistance library</Title>
     <RepositoryUrl>https://github.com/ScottHerrmannSH/ICS.AppRun</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReleaseNotes>Initial Release</PackageReleaseNotes>
+    <PackageReleaseNotes>Added Ability to Update WebApplicationBuilder with config sources</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
